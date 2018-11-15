@@ -1,8 +1,10 @@
 package net.corda.node.internal
 
 import net.corda.core.crypto.SecureHash
+import net.corda.core.identity.Party
 import net.corda.core.internal.*
 import net.corda.core.node.NetworkParameters
+import net.corda.core.node.NotaryInfo
 import net.corda.core.node.services.NetworkParametersStorage
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.SingletonSerializeAsToken
@@ -184,6 +186,26 @@ class NodeParametersStorage(
         val hash = signedNetworkParameters.raw.hash
         log.trace { "Parameters to save $networkParameters with hash $hash" }
         hashToParameters.addWithDuplicatesAllowed(hash, signedNetworkParameters)
+    }
+
+    override fun isNotary(party: Party): Boolean {
+        return getNotaryInfo(party) != null
+    }
+
+    /** Try to obtain notary info from the current network parameters. If not found, look through historical ones. */
+    private fun getNotaryInfo(party: Party): NotaryInfo? {
+        val inCurrentParams = currentParameters.notaries.singleOrNull { it.identity == party }
+        if (inCurrentParams == null) {
+            val inOldParams = hashToParameters.allPersisted().flatMap { (_, signedParams) ->
+                val parameters = signedParams.raw.deserialize()
+                parameters.notaries.asSequence()
+            }.singleOrNull { it.identity == party }
+            return inOldParams
+        } else return inCurrentParams
+    }
+
+    override fun isValidatingNotary(party: Party): Boolean {
+        return getNotaryInfo(party)?.validating ?: throw IllegalStateException("Party $party is not a notary on the network")
     }
 
     // TODO For the future we could get them also as signed (by network operator) attachments on transactions.
