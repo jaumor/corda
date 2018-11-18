@@ -7,10 +7,20 @@ release, see :doc:`upgrade-notes`.
 Unreleased
 ----------
 
-* Deprecated `SerializationContext.withAttachmentsClassLoader`. This functionality has always been disabled by flags
-and there is no reason for a CorDapp developer to use it. It is just an internal implementation detail of Corda.
+* ``SwapIdentitiesFlow``, from the experimental confidential-identities module, is now an inlined flow. Instead of passing in a ``Party`` with
+  whom to exchange the anonymous identity, a ``FlowSession`` to that party is required instead. The flow running on the other side must
+  also call ``SwapIdentitiesFlow``. This change was required as the previous API allowed any counterparty to generate anonoymous identities
+  with a node at will with no checks.  Also the result type has changed to a simple wrapper class, instead of a Map, to make extracting the
+  identities easier.
 
-* Deprecated the `LedgerTransaction` constructor. No client code should call it directly. LedgerTransactions can be created from WireTransactions if required.
+  .. note:: CorDapps using V3 of confidential-identities will not be able to swap anonymous identities with a counterpart running a Corda V4 node.
+     However, the opposite is possible - such a CorDapp on a Corda V4 node will be able swap identities with a Corda V3 node.
+
+* Deprecated `SerializationContext.withAttachmentsClassLoader`. This functionality has always been disabled by flags
+  and there is no reason for a CorDapp developer to use it. It is just an internal implementation detail of Corda.
+
+* Deprecated the `LedgerTransaction` constructor. No client code should call it directly. LedgerTransactions can be created from WireTransactions
+  if required.
 
 * Introduced new optional network bootstrapper command line options (--register-package-owner, --unregister-package-owner)
   to register/unregister a java package namespace with an associated owner in the network parameter packageOwnership whitelist.
@@ -26,10 +36,10 @@ and there is no reason for a CorDapp developer to use it. It is just an internal
   un-acknowledged in the message broker. This enables the recovery scenerio whereby any missing CorDapp can be installed and retried on node
   restart. As a consequence the initiating flow will be blocked until the receiving node has resolved the issue.
 
-* ``FinalityFlow`` is now an inlined flow and no longer requires a handler flow in the counterparty. This is to fix the
-  security problem with the handler flow as it accepts any transaction it receives without any checks. Existing CorDapp
-  binaries relying on this old behaviour will continue to function as previously. However, it is strongly recommended that
-  CorDapps switch to this new API. See :doc:`upgrade-notes` for further details.
+* ``FinalityFlow`` is now an inlined flow and requires ``FlowSession`` s to each party intended to receive the transaction. This is to fix the
+  security problem with the old API that required every node to accept any transaction it received without any checks. Existing CorDapp
+  binaries relying on this old behaviour will continue to function as previously. However, it is strongly recommended that CorDapps switch to
+  this new API. See :doc:`upgrade-notes` for further details.
 
 * Introduced new optional network bootstrapper command line option (--minimum-platform-version) to set as a network parameter
 
