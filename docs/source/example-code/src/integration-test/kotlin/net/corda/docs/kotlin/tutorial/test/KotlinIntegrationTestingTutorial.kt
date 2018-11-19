@@ -18,6 +18,7 @@ import net.corda.node.services.Permissions.Companion.invokeRpc
 import net.corda.node.services.Permissions.Companion.startFlow
 import net.corda.testing.core.*
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.junit.Test
@@ -41,8 +42,8 @@ class KotlinIntegrationTestingTutorial {
             ))
 
             val (alice, bob) = listOf(
-                    startNode(providedName = ALICE_NAME, rpcUsers = listOf(aliceUser)),
-                    startNode(providedName = BOB_NAME, rpcUsers = listOf(bobUser))
+                    startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(aliceUser))),
+                    startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = listOf(bobUser)))
             ).map { it.getOrThrow() }
             // END 1
 

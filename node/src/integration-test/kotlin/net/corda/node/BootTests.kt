@@ -51,12 +51,12 @@ class BootTests {
     @Test
     fun `double node start doesn't write into log file`() {
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val alice = startNode(providedName = ALICE_NAME).get()
+            val alice = startNode(NodeParameters(providedName = ALICE_NAME)).get()
             val logFolder = alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME
             val logFile = logFolder.list { it.filter { it.fileName.toString().endsWith(".log") }.findAny().get() }
             // Start second Alice, should fail
             assertThatThrownBy {
-                startNode(providedName = ALICE_NAME).getOrThrow()
+                startNode(NodeParameters(providedName = ALICE_NAME)).getOrThrow()
             }
             // We count the number of nodes that wrote into the logfile by counting "Logs can be found in"
             val numberOfNodesThatLogged = logFile.readLines { it.filter { NodeStartup.LOGS_CAN_BE_FOUND_IN_STRING in it }.count() }

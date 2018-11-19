@@ -9,6 +9,7 @@ import net.corda.core.messaging.startFlow
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.driver.DriverParameters
 import net.corda.testing.driver.NodeHandle
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -18,11 +19,13 @@ class ErrorCodeLoggingTests {
     @Test
     fun `log entries with a throwable and ERROR or WARN get an error code appended`() {
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(startInSameProcess = false).getOrThrow()
+            val node = startNode(NodeParameters(startInSameProcess = false)).getOrThrow()
             node.rpc.startFlow(::MyFlow).waitForCompletion()
             val logFile = node.logFile()
 
-            val linesWithErrorCode = logFile.useLines { lines -> lines.filter { line -> line.contains("[errorCode=") }.filter { line -> line.contains("moreInformationAt=https://errors.corda.net/") }.toList() }
+            val linesWithErrorCode = logFile.useLines { lines ->
+                lines.filter { line -> "[errorCode=" in line && "moreInformationAt=https://errors.corda.net/" in line }.toList()
+            }
 
             assertThat(linesWithErrorCode).isNotEmpty
         }

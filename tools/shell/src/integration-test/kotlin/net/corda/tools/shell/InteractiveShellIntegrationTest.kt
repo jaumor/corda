@@ -23,6 +23,7 @@ import net.corda.node.utilities.saveToTrustStore
 import net.corda.nodeapi.BrokerRpcSslOptions
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.driver.internal.NodeHandleInternal
 import net.corda.testing.internal.useSslRpcOverrides
@@ -51,7 +52,7 @@ class InteractiveShellIntegrationTest {
     fun `shell should not log in with invalid credentials`() {
         val user = User("u", "p", setOf())
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -67,7 +68,7 @@ class InteractiveShellIntegrationTest {
     fun `shell should log in with valid credentials`() {
         val user = User("u", "p", setOf())
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -92,7 +93,7 @@ class InteractiveShellIntegrationTest {
         val clientSslOptions = ClientRpcSslOptions(trustStorePath, "password")
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            startNode(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow().use { node ->
+            startNode(NodeParameters(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow().use { node ->
 
                 val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
                         user = user.username, password = user.password,
@@ -120,7 +121,7 @@ class InteractiveShellIntegrationTest {
         val clientSslOptions = ClientRpcSslOptions(trustStorePath, "password")
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            startNode(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow().use { node ->
+            startNode(NodeParameters(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow().use { node ->
 
                 val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
                         user = user.username, password = user.password,
@@ -152,7 +153,7 @@ class InteractiveShellIntegrationTest {
                 Permissions.invokeRpc(CordaRPCOps::registeredFlows),
                 Permissions.invokeRpc(CordaRPCOps::nodeInfo)))
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -203,7 +204,7 @@ class InteractiveShellIntegrationTest {
 
         var successful = false
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            startNode(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow().use { node ->
+            startNode(NodeParameters(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow().use { node ->
 
                 val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
                         user = user.username, password = user.password,
@@ -277,7 +278,7 @@ class InteractiveShellIntegrationTest {
         val user = User("u", "p", setOf(all()))
         var successful = false
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -309,7 +310,7 @@ class InteractiveShellIntegrationTest {
         val user = User("u", "p", setOf(all()))
         var successful = false
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -341,7 +342,7 @@ class InteractiveShellIntegrationTest {
         val user = User("u", "p", setOf(all()))
         var successful = false
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),
@@ -373,7 +374,7 @@ class InteractiveShellIntegrationTest {
         val user = User("u", "p", setOf(all()))
         var successful = false
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
 
             val conf = ShellConfiguration(commandsDirectory = Files.createTempDir().toPath(),

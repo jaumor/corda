@@ -18,6 +18,7 @@ import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.chooseIdentity
@@ -51,14 +52,14 @@ class P2PFlowsDrainingModeTest {
 
     @After
     fun cleanUp() {
-        executor!!.shutdown()
+        executor?.shutdown()
     }
 
     @Test
     fun `flows draining mode suspends consumption of initial session messages`() {
         driver(DriverParameters(startNodesInProcess = false, portAllocation = portAllocation, notarySpecs = emptyList())) {
-            val initiatedNode = startNode(providedName = ALICE_NAME).getOrThrow()
-            val initiating = startNode(providedName = BOB_NAME, rpcUsers = users).getOrThrow().rpc
+            val initiatedNode = startNode(NodeParameters(providedName = ALICE_NAME)).getOrThrow()
+            val initiating = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow().rpc
             val counterParty = initiatedNode.nodeInfo.singleIdentity()
             val initiated = initiatedNode.rpc
 
@@ -86,18 +87,21 @@ class P2PFlowsDrainingModeTest {
 
     @Test
     fun `terminate node waiting for pending flows`() {
-
         driver(DriverParameters(portAllocation = portAllocation, notarySpecs = emptyList())) {
-
-            val nodeA = startNode(providedName = ALICE_NAME, rpcUsers = users).getOrThrow()
-            val nodeB = startNode(providedName = BOB_NAME, rpcUsers = users).getOrThrow()
+            val nodeA = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = users)).getOrThrow()
+            val nodeB = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow()
             var successful = false
             val latch = CountDownLatch(1)
 
             nodeB.rpc.setFlowsDrainingModeEnabled(true)
             IntRange(1, 10).forEach { nodeA.rpc.startFlow(::InitiateSessionFlow, nodeB.nodeInfo.chooseIdentity()) }
 
-            nodeA.waitForShutdown().doOnError(Throwable::printStackTrace).doOnError { successful = false }.doOnCompleted { successful = true }.doAfterTerminate(latch::countDown).subscribe()
+            nodeA.waitForShutdown()
+                    .doOnError(Throwable::printStackTrace)
+                    .doOnError { successful = false }
+                    .doOnCompleted { successful = true }
+                    .doAfterTerminate(latch::countDown)
+                    .subscribe()
 
             nodeA.rpc.terminate(true)
             nodeB.rpc.setFlowsDrainingModeEnabled(false)
@@ -110,19 +114,23 @@ class P2PFlowsDrainingModeTest {
 
     @Test
     fun `terminate resets persistent draining mode property when waiting for pending flows`() {
-
         driver(DriverParameters(portAllocation = portAllocation, notarySpecs = emptyList())) {
-
-            val nodeA = startNode(providedName = ALICE_NAME, rpcUsers = users).getOrThrow()
+            val nodeA = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = users)).getOrThrow()
             var successful = false
             val latch = CountDownLatch(1)
 
             // This would not be needed, as `terminate(true)` sets draining mode anyway, but it's here to ensure that it removes the persistent value anyway.
             nodeA.rpc.setFlowsDrainingModeEnabled(true)
-            nodeA.rpc.waitForShutdown().doOnError(Throwable::printStackTrace).doOnError { successful = false }.doOnCompleted(nodeA::stop).doOnCompleted {
-                val nodeARestarted = startNode(providedName = ALICE_NAME, rpcUsers = users).getOrThrow()
-                successful = !nodeARestarted.rpc.isFlowsDrainingModeEnabled()
-            }.doAfterTerminate(latch::countDown).subscribe()
+            nodeA.rpc.waitForShutdown()
+                    .doOnError(Throwable::printStackTrace)
+                    .doOnError { successful = false }
+                    .doOnCompleted(nodeA::stop)
+                    .doOnCompleted {
+                        val nodeARestarted = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = users)).getOrThrow()
+                        successful = !nodeARestarted.rpc.isFlowsDrainingModeEnabled()
+                    }
+                    .doAfterTerminate(latch::countDown)
+                    .subscribe()
 
             nodeA.rpc.terminate(true)
 
@@ -134,21 +142,27 @@ class P2PFlowsDrainingModeTest {
 
     @Test
     fun `disabling draining mode cancels draining shutdown`() {
-
         driver(DriverParameters(portAllocation = portAllocation, notarySpecs = emptyList())) {
-
-            val nodeA = startNode(providedName = ALICE_NAME, rpcUsers = users).getOrThrow()
-            val nodeB = startNode(providedName = BOB_NAME, rpcUsers = users).getOrThrow()
+            val nodeA = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = users)).getOrThrow()
+            val nodeB = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow()
             var successful = false
             val latch = CountDownLatch(1)
 
             nodeB.rpc.setFlowsDrainingModeEnabled(true)
             IntRange(1, 10).forEach { nodeA.rpc.startFlow(::InitiateSessionFlow, nodeB.nodeInfo.chooseIdentity()) }
 
-            nodeA.waitForShutdown().doOnError(Throwable::printStackTrace).doAfterTerminate { successful = false }.doAfterTerminate(latch::countDown).subscribe()
+            nodeA.waitForShutdown()
+                    .doOnError(Throwable::printStackTrace)
+                    .doAfterTerminate { successful = false }
+                    .doAfterTerminate(latch::countDown)
+                    .subscribe()
 
             nodeA.rpc.terminate(true)
-            nodeA.rpc.hasCancelledDrainingShutdown().doOnError(Throwable::printStackTrace).doOnError { successful = false }.doOnCompleted { successful = true }.doAfterTerminate(latch::countDown).subscribe()
+            nodeA.rpc.hasCancelledDrainingShutdown()
+                    .doOnError(Throwable::printStackTrace)
+                    .doOnError { successful = false }
+                    .doOnCompleted { successful = true }
+                    .doAfterTerminate(latch::countDown).subscribe()
 
             nodeA.rpc.setFlowsDrainingModeEnabled(false)
             nodeB.rpc.setFlowsDrainingModeEnabled(false)

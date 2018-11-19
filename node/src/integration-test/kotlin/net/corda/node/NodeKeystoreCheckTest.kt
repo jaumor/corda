@@ -8,6 +8,7 @@ import net.corda.nodeapi.internal.crypto.CertificateType
 import net.corda.nodeapi.internal.crypto.X509Utilities
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.stubs.CertificateStoreStubs
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -19,7 +20,7 @@ class NodeKeystoreCheckTest {
     fun `starting node in non-dev mode with no key store`() {
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
             assertThatThrownBy {
-                startNode(customOverrides = mapOf("devMode" to false)).getOrThrow()
+                startNode(NodeParameters(customOverrides = mapOf("devMode" to false))).getOrThrow()
             }.hasMessageContaining("One or more keyStores (identity or TLS) or trustStore not found.")
         }
     }
@@ -36,12 +37,14 @@ class NodeKeystoreCheckTest {
             p2pSslConfig.configureDevKeyAndTrustStores(ALICE_NAME, signingCertStore, certificatesDirectory)
 
             // This should pass with correct keystore.
-            val node = startNode(
+            val node = startNode(NodeParameters(
                     providedName = ALICE_NAME,
-                    customOverrides = mapOf("devMode" to false,
+                    customOverrides = mapOf(
+                            "devMode" to false,
                             "keyStorePassword" to keystorePassword,
-                            "trustStorePassword" to keystorePassword)
-            ).getOrThrow()
+                            "trustStorePassword" to keystorePassword
+                    )
+            )).getOrThrow()
             node.stop()
 
             // Fiddle with node keystore.
@@ -55,7 +58,7 @@ class NodeKeystoreCheckTest {
             }
 
             assertThatThrownBy {
-                startNode(providedName = ALICE_NAME, customOverrides = mapOf("devMode" to false)).getOrThrow()
+                startNode(NodeParameters(providedName = ALICE_NAME, customOverrides = mapOf("devMode" to false))).getOrThrow()
             }.hasMessage("Client CA certificate must chain to the trusted root.")
         }
     }

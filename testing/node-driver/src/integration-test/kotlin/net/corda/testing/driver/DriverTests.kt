@@ -54,7 +54,7 @@ class DriverTests {
     @Test
     fun `simple node startup and shutdown`() {
         val handle = driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = DUMMY_REGULATOR_NAME)
+            val node = startNode(NodeParameters(providedName = DUMMY_REGULATOR_NAME))
             nodeMustBeUp(node)
         }
         nodeMustBeDown(handle)
@@ -81,7 +81,7 @@ class DriverTests {
         // Based on local testing, running this 3 times gives us a high confidence that we'll spot if the feature is not working
         repeat(3) {
             driver(DriverParameters(startNodesInProcess = true)) {
-                val bob = startNode(providedName = BOB_NAME).getOrThrow()
+                val bob = startNode(NodeParameters(providedName = BOB_NAME)).getOrThrow()
                 assertThat(bob.rpc.networkMapSnapshot().flatMap { it.legalIdentities }).contains(defaultNotaryIdentity)
             }
         }
@@ -97,7 +97,7 @@ class DriverTests {
                 notarySpecs = emptyList(),
                 systemProperties = mapOf("log4j.configurationFile" to logConfigFile.toString())
         )) {
-            val baseDirectory = startNode(providedName = DUMMY_BANK_A_NAME).getOrThrow().baseDirectory
+            val baseDirectory = startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME)).getOrThrow().baseDirectory
             val logFile = (baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).list { it.sorted().findFirst().get() }
             val debugLinesPresent = logFile.readLines { lines -> lines.anyMatch { line -> line.startsWith("[DEBUG]") } }
             assertThat(debugLinesPresent).isTrue()
@@ -109,8 +109,10 @@ class DriverTests {
         driver(DriverParameters(startNodesInProcess = false, notarySpecs = emptyList())) {
             // start another node so we gain access to node JMX metrics
             val webAddress = NetworkHostAndPort("localhost", 7006)
-            startNode(providedName = DUMMY_REGULATOR_NAME,
-                      customOverrides = mapOf("jmxMonitoringHttpPort" to webAddress.port)).getOrThrow()
+            startNode(NodeParameters(
+                    providedName = DUMMY_REGULATOR_NAME,
+                    customOverrides = mapOf("jmxMonitoringHttpPort" to webAddress.port)
+            )).getOrThrow()
             // request access to some JMX metrics via Jolokia HTTP/JSON
             val api = HttpApi.fromHostAndPort(webAddress, "/jolokia/")
             val versionAsJson = api.getJson<JSONObject>("/jolokia/version/")

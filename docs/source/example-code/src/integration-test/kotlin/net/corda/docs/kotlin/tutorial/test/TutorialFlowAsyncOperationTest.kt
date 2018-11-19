@@ -7,6 +7,7 @@ import net.corda.docs.kotlin.tutorial.flowstatemachines.ExampleSummingFlow
 import net.corda.node.services.Permissions
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.junit.Test
@@ -18,7 +19,7 @@ class TutorialFlowAsyncOperationTest {
     fun summingWorks() {
         driver(DriverParameters(startNodesInProcess = true)) {
             val aliceUser = User("aliceUser", "testPassword1", permissions = setOf(Permissions.all()))
-            val alice = startNode(providedName = ALICE_NAME, rpcUsers = listOf(aliceUser)).getOrThrow()
+            val alice = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(aliceUser))).getOrThrow()
             val aliceClient = CordaRPCClient(alice.rpcAddress)
             val aliceProxy = aliceClient.start("aliceUser", "testPassword1").proxy
             val answer = aliceProxy.startFlow(::ExampleSummingFlow).returnValue.getOrThrow()

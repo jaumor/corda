@@ -28,6 +28,7 @@ import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.core.DUMMY_NOTARY_NAME
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.http.HttpApi
 import net.corda.testing.node.NotarySpec
 import net.corda.testing.node.User
@@ -57,9 +58,9 @@ class IRSDemoTest {
         )) {
             val (controller, nodeA, nodeB) = listOf(
                     defaultNotaryNode,
-                    startNode(providedName = DUMMY_BANK_A_NAME, rpcUsers = rpcUsers),
-                    startNode(providedName = DUMMY_BANK_B_NAME, rpcUsers = rpcUsers),
-                    startNode(providedName = CordaX500Name("Regulator", "Moscow", "RU"))
+                    startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME, rpcUsers = rpcUsers)),
+                    startNode(NodeParameters(providedName = DUMMY_BANK_B_NAME, rpcUsers = rpcUsers)),
+                    startNode(NodeParameters(providedName = CordaX500Name("Regulator", "Moscow", "RU")))
             ).map { it.getOrThrow() }
 
             log.info("All nodes started")

@@ -23,6 +23,7 @@ import net.corda.testMessage.MessageContract
 import net.corda.testMessage.MessageState
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.junit.Assume.assumeFalse
@@ -42,7 +43,7 @@ class NodeStatePersistenceTests {
                 extraCordappPackagesToScan = listOf(MessageState::class.packageName)
         )) {
             val nodeName = {
-                val nodeHandle = startNode(rpcUsers = listOf(user)).getOrThrow()
+                val nodeHandle = startNode(NodeParameters(rpcUsers = listOf(user))).getOrThrow()
                 val nodeName = nodeHandle.nodeInfo.singleIdentity().name
                 CordaRPCClient(nodeHandle.rpcAddress).start(user.username, user.password).use {
                     it.proxy.startFlow(::SendMessageFlow, message, defaultNotaryIdentity).returnValue.getOrThrow()
@@ -51,7 +52,7 @@ class NodeStatePersistenceTests {
                 nodeName
             }()
 
-            val nodeHandle = startNode(providedName = nodeName, rpcUsers = listOf(user)).getOrThrow()
+            val nodeHandle = startNode(NodeParameters(providedName = nodeName, rpcUsers = listOf(user))).getOrThrow()
             val result = CordaRPCClient(nodeHandle.rpcAddress).start(user.username, user.password).use {
                 val page = it.proxy.vaultQuery(MessageState::class.java)
                 page.states.singleOrNull()
@@ -78,7 +79,7 @@ class NodeStatePersistenceTests {
                 extraCordappPackagesToScan = listOf(MessageState::class.packageName)
         )) {
             val nodeName = {
-                val nodeHandle = startNode(rpcUsers = listOf(user)).getOrThrow()
+                val nodeHandle = startNode(NodeParameters(rpcUsers = listOf(user))).getOrThrow()
                 val nodeName = nodeHandle.nodeInfo.singleIdentity().name
                 CordaRPCClient(nodeHandle.rpcAddress).start(user.username, user.password).use {
                     it.proxy.startFlow(::SendMessageFlow, message, defaultNotaryIdentity).returnValue.getOrThrow()
@@ -87,7 +88,11 @@ class NodeStatePersistenceTests {
                 nodeName
             }()
 
-            val nodeHandle = startNode(providedName = nodeName, rpcUsers = listOf(user), customOverrides = mapOf("devMode" to "false")).getOrThrow()
+            val nodeHandle = startNode(NodeParameters(
+                    providedName = nodeName,
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf("devMode" to "false")
+            )).getOrThrow()
             val result = CordaRPCClient(nodeHandle.rpcAddress).start(user.username, user.password).use {
                 val page = it.proxy.vaultQuery(MessageState::class.java)
                 page.states.singleOrNull()

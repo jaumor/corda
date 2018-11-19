@@ -10,6 +10,7 @@ import net.corda.testing.common.internal.ProjectStructure.projectRootDir
 import net.corda.testing.core.DUMMY_BANK_A_NAME
 import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.http.HttpApi
 import net.corda.vega.api.PortfolioApi
@@ -51,8 +52,8 @@ class SimmValuationTest {
                 extraCordappPackagesToScan = listOf("net.corda.vega.contracts", "net.corda.vega.plugin.customserializers"),
                 systemProperties = mapOf("log4j.configurationFile" to logConfigFile.toString()))
         ) {
-            val nodeAFuture = startNode(providedName = nodeALegalName)
-            val nodeBFuture = startNode(providedName = nodeBLegalName)
+            val nodeAFuture = startNode(NodeParameters(providedName = nodeALegalName))
+            val nodeBFuture = startNode(NodeParameters(providedName = nodeBLegalName))
             val (nodeA, nodeB) = listOf(nodeAFuture, nodeBFuture).map { it.getOrThrow() }
             val nodeAWebServerFuture = startWebserver(nodeA)
             val nodeBWebServerFuture = startWebserver(nodeB)

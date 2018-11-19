@@ -17,6 +17,7 @@ import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.core.expect
 import net.corda.testing.core.expectEvents
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
@@ -39,8 +40,16 @@ class AdditionP2PAddressModeTest {
             haConfig["additionalP2PAddresses"] = ConfigValueFactory.fromIterable(listOf(altAddress)) // advertise this secondary address
 
             val (nodeA, nodeB) = listOf(
-                    startNode(providedName = DUMMY_BANK_A_NAME, rpcUsers = listOf(testUser), customOverrides = haConfig),
-                    startNode(providedName = DUMMY_BANK_B_NAME, rpcUsers = listOf(testUser), customOverrides = mapOf("p2pAddress" to portAllocation.nextHostAndPort().toString()))
+                    startNode(NodeParameters(
+                            providedName = DUMMY_BANK_A_NAME,
+                            rpcUsers = listOf(testUser),
+                            customOverrides = haConfig
+                    )),
+                    startNode(NodeParameters(
+                            providedName = DUMMY_BANK_B_NAME,
+                            rpcUsers = listOf(testUser),
+                            customOverrides = mapOf("p2pAddress" to portAllocation.nextHostAndPort().toString())
+                    ))
             ).map { it.getOrThrow() }
             val (nodeARpc, nodeBRpc) = listOf(nodeA, nodeB).map {
                 val client = CordaRPCClient(it.rpcAddress)
@@ -54,7 +63,7 @@ class AdditionP2PAddressModeTest {
                     CashIssueAndPaymentFlow::class.java,
                     DOLLARS(1234),
                     issueRef,
-                    nodeB.nodeInfo.legalIdentities.get(0),
+                    nodeB.nodeInfo.legalIdentities[0],
                     true,
                     defaultNotaryIdentity
             ).returnValue.getOrThrow()

@@ -5,6 +5,7 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.testing.core.DUMMY_BANK_A_NAME
 import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 
 /**
@@ -14,9 +15,9 @@ import net.corda.testing.driver.driver
 fun main(args: Array<String>) {
     driver(DriverParameters(useTestClock = true, waitForAllNodesToFinish = true)) {
         val (nodeA, nodeB) = listOf(
-                startNode(providedName = DUMMY_BANK_A_NAME),
-                startNode(providedName = DUMMY_BANK_B_NAME),
-                startNode(providedName = CordaX500Name("Regulator", "Moscow", "RU"))
+                startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME)),
+                startNode(NodeParameters(providedName = DUMMY_BANK_B_NAME)),
+                startNode(NodeParameters(providedName = CordaX500Name("Regulator", "Moscow", "RU")))
         ).map { it.getOrThrow() }
         val controller = defaultNotaryNode.getOrThrow()
 

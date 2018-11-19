@@ -12,6 +12,7 @@ import net.corda.node.utilities.saveToTrustStore
 import net.corda.nodeapi.BrokerRpcSslOptions
 import net.corda.nodeapi.internal.ArtemisMessagingComponent.Companion.NODE_RPC_USER
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.useSslRpcOverrides
 import net.corda.testing.node.User
@@ -46,7 +47,7 @@ class RpcSslTest {
         val clientSslOptions = ClientRpcSslOptions(trustStorePath, "password")
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val node = startNode(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow()
+            val node = startNode(NodeParameters(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow()
             val client = CordaRPCClient.createWithSsl(node.rpcAddress, sslConfiguration = clientSslOptions)
             val connection = client.start(user.username, user.password)
 
@@ -84,7 +85,7 @@ class RpcSslTest {
         val clientSslOptions = ClientRpcSslOptions(trustStorePath, "password")
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val node = startNode(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow()
+            val node = startNode(NodeParameters(rpcUsers = listOf(user), customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow()
             Assertions.assertThatThrownBy {
                 val connection = CordaRPCClient.createWithSsl(node.rpcAddress, sslConfiguration = clientSslOptions).start(user.username, user.password)
                 connection.proxy.apply {
@@ -104,7 +105,7 @@ class RpcSslTest {
         val user = User("mark", "dadada", setOf(all()))
         var successful = false
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val node = startNode(rpcUsers = listOf(user)).getOrThrow()
+            val node = startNode(NodeParameters(rpcUsers = listOf(user))).getOrThrow()
             val connection = CordaRPCClient(node.rpcAddress).start(user.username, user.password)
             connection.proxy.apply {
                 nodeInfo()
@@ -124,7 +125,7 @@ class RpcSslTest {
         val clientSslOptions = ClientRpcSslOptions(trustStorePath, "password")
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val node = startNode(customOverrides = brokerSslOptions.useSslRpcOverrides()).getOrThrow()
+            val node = startNode(NodeParameters(customOverrides = brokerSslOptions.useSslRpcOverrides())).getOrThrow()
             val client = CordaRPCClient.createWithSsl(node.rpcAddress, sslConfiguration = clientSslOptions)
 
             Assertions.assertThatThrownBy {

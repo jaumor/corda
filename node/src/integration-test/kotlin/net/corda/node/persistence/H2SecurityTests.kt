@@ -9,6 +9,7 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.node.services.Permissions
 import net.corda.nodeapi.internal.persistence.CouldNotCreateDataSourceException
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
@@ -31,7 +32,7 @@ class H2SecurityTests {
     fun `h2 server starts when h2Settings are set`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
             val port = getFreePort()
-            startNode(customOverrides = mapOf(h2AddressKey to "localhost:$port")).getOrThrow()
+            startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "localhost:$port"))).getOrThrow()
             DriverManager.getConnection("jdbc:h2:tcp://localhost:$port/node", "sa", "").use {
                 assertTrue(it.createStatement().executeQuery("SELECT 1").next())
             }
@@ -42,7 +43,7 @@ class H2SecurityTests {
     fun `h2 server on the host name requires non-default database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
             assertFailsWith(CouldNotCreateDataSourceException::class) {
-                startNode(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostName}:${getFreePort()}")).getOrThrow()
+                startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostName}:${getFreePort()}"))).getOrThrow()
             }
         }
     }
@@ -51,7 +52,7 @@ class H2SecurityTests {
     fun `h2 server on the external host IP requires non-default database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
             assertFailsWith(CouldNotCreateDataSourceException::class) {
-                startNode(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostAddress}:${getFreePort()}")).getOrThrow()
+                startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostAddress}:${getFreePort()}"))).getOrThrow()
             }
         }
     }
@@ -60,8 +61,10 @@ class H2SecurityTests {
     fun `h2 server on host name requires non-blank database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
             assertFailsWith(CouldNotCreateDataSourceException::class) {
-                startNode(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostName}:${getFreePort()}",
-                        dbPasswordKey to " ")).getOrThrow()
+                startNode(NodeParameters(
+                        customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostName}:${getFreePort()}",
+                        dbPasswordKey to " ")
+                )).getOrThrow()
             }
         }
     }
@@ -70,8 +73,10 @@ class H2SecurityTests {
     fun `h2 server on external host IP requires non-blank database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
             assertFailsWith(CouldNotCreateDataSourceException::class) {
-                startNode(customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostAddress}:${getFreePort()}",
-                        dbPasswordKey to " ")).getOrThrow()
+                startNode(NodeParameters(
+                        customOverrides = mapOf(h2AddressKey to "${InetAddress.getLocalHost().hostAddress}:${getFreePort()}",
+                        dbPasswordKey to " ")
+                )).getOrThrow()
             }
         }
     }
@@ -79,14 +84,14 @@ class H2SecurityTests {
     @Test
     fun `h2 server on localhost runs with the default database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = false, notarySpecs = emptyList())) {
-            startNode(customOverrides = mapOf(h2AddressKey to "localhost:${getFreePort()}")).getOrThrow()
+            startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "localhost:${getFreePort()}"))).getOrThrow()
         }
     }
 
     @Test
     fun `h2 server to loopback IP runs with the default database password`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = isQuasarAgentSpecified(), notarySpecs = emptyList())) {
-            startNode(customOverrides = mapOf(h2AddressKey to "127.0.0.1:${getFreePort()}")).getOrThrow()
+            startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "127.0.0.1:${getFreePort()}"))).getOrThrow()
         }
     }
 
@@ -94,7 +99,7 @@ class H2SecurityTests {
     fun `remote code execution via h2 server is disabled`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = false, notarySpecs = emptyList())) {
             val port = getFreePort()
-            startNode(customOverrides = mapOf(h2AddressKey to "localhost:$port", dbPasswordKey to "x")).getOrThrow()
+            startNode(NodeParameters(customOverrides = mapOf(h2AddressKey to "localhost:$port", dbPasswordKey to "x"))).getOrThrow()
             DriverManager.getConnection("jdbc:h2:tcp://localhost:$port/node", "sa", "x").use {
                 assertFailsWith(org.h2.jdbc.JdbcSQLException::class) {
                     it.createStatement().execute("CREATE ALIAS SET_PROPERTY FOR \"java.lang.System.setProperty\"")
@@ -110,8 +115,10 @@ class H2SecurityTests {
         val user = User("mark", "dadada", setOf(Permissions.startFlow<MaliciousFlow>()))
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = false, notarySpecs = emptyList())) {
             val port = getFreePort()
-            val nodeHandle = startNode(rpcUsers = listOf(user), customOverrides = mapOf(h2AddressKey to "localhost:$port",
-                    dbPasswordKey to "x")).getOrThrow()
+            val nodeHandle = startNode(NodeParameters(
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf(h2AddressKey to "localhost:$port", dbPasswordKey to "x")
+            )).getOrThrow()
             CordaRPCClient(nodeHandle.rpcAddress).start(user.username, user.password).use {
                 it.proxy.startFlow(::MaliciousFlow).returnValue.getOrThrow()
             }

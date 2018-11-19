@@ -17,6 +17,7 @@ import net.corda.node.services.Permissions.Companion.startFlow
 import net.corda.testing.core.DUMMY_NOTARY_NAME
 import net.corda.testing.driver.DriverParameters
 import net.corda.testing.driver.InProcess
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.driver.internal.internalServices
 import net.corda.testing.internal.performance.div
@@ -50,7 +51,7 @@ class NodePerformanceTests {
     @Test
     fun `empty flow per second`() {
         driver(DriverParameters(startNodesInProcess = true)) {
-            val a = startNode(rpcUsers = listOf(User("A", "A", setOf(startFlow<EmptyFlow>())))).get()
+            val a = startNode(NodeParameters(rpcUsers = listOf(User("A", "A", setOf(startFlow<EmptyFlow>()))))).get()
 
             CordaRPCClient(a.rpcAddress).use("A", "A") { connection ->
                 val timings = Collections.synchronizedList(ArrayList<Long>())
@@ -80,7 +81,7 @@ class NodePerformanceTests {
     @Test
     fun `empty flow rate`() {
         internalDriver(startNodesInProcess = true) {
-            val a = startNode(rpcUsers = listOf(User("A", "A", setOf(startFlow<EmptyFlow>())))).get()
+            val a = startNode(NodeParameters(rpcUsers = listOf(User("A", "A", setOf(startFlow<EmptyFlow>()))))).get()
             a as InProcess
             val metricRegistry = startReporter(this.shutdownManager, a.internalServices.monitoringService.metrics)
             CordaRPCClient(a.rpcAddress).use("A", "A") { connection ->

@@ -15,6 +15,7 @@ import net.corda.testing.contracts.DummyContract
 import net.corda.testing.contracts.DummyState
 import net.corda.testing.core.*
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.junit.Test
@@ -79,7 +80,7 @@ class LargeTransactionsTest {
                 networkParameters = testNetworkParameters(maxMessageSize = 15.MB.toInt(), maxTransactionSize = 13.MB.toInt())
         )) {
             val rpcUser = User("admin", "admin", setOf("ALL"))
-            val (alice, _) = listOf(ALICE_NAME, BOB_NAME).map { startNode(providedName = it, rpcUsers = listOf(rpcUser)) }.transpose().getOrThrow()
+            val (alice, _) = listOf(ALICE_NAME, BOB_NAME).map { startNode(NodeParameters(providedName = it, rpcUsers = listOf(rpcUser))) }.transpose().getOrThrow()
             CordaRPCClient(alice.rpcAddress).use(rpcUser.username, rpcUser.password) {
                 val hash1 = it.proxy.uploadAttachment(bigFile1.inputStream)
                 val hash2 = it.proxy.uploadAttachment(bigFile2.inputStream)

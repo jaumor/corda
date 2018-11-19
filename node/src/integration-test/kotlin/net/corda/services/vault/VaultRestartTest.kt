@@ -11,6 +11,7 @@ import net.corda.finance.contracts.asset.Cash
 import net.corda.finance.flows.CashIssueFlow
 import net.corda.testing.core.DUMMY_BANK_A_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.OutOfProcess
 import net.corda.testing.driver.driver
 import org.assertj.core.api.Assertions
@@ -22,7 +23,10 @@ class VaultRestartTest {
     fun `restart and query vault after adding some cash states`() {
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = false,
                                 extraCordappPackagesToScan = listOf("net.corda.finance.contracts", "net.corda.finance.schemas"))) {
-            val node = startNode(providedName = DUMMY_BANK_A_NAME, customOverrides = mapOf("p2pAddress" to "localhost:30000")).getOrThrow()
+            val node = startNode(NodeParameters(
+                    providedName = DUMMY_BANK_A_NAME,
+                    customOverrides = mapOf("p2pAddress" to "localhost:30000")
+            )).getOrThrow()
 
             val expected = 500.DOLLARS
             val ref = OpaqueBytes.of(0x01)
@@ -40,7 +44,10 @@ class VaultRestartTest {
             node.stop()
 
             println("Restarting the node ...")
-            val restartedNode = startNode(providedName = DUMMY_BANK_A_NAME, customOverrides = mapOf("p2pAddress" to "localhost:30000")).getOrThrow()
+            val restartedNode = startNode(NodeParameters(
+                    providedName = DUMMY_BANK_A_NAME,
+                    customOverrides = mapOf("p2pAddress" to "localhost:30000")
+            )).getOrThrow()
             Assertions.assertThat(restartedNode.rpc.vaultQueryBy<Cash.State>().states).hasSize(1)
             Assertions.assertThat(restartedNode.rpc.vaultQueryBy<FungibleAsset<*>>().states).hasSize(1)
         }

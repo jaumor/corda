@@ -8,6 +8,7 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.node.services.Permissions
 import net.corda.nodeapi.exceptions.RejectedCommandException
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
@@ -24,7 +25,7 @@ class RpcFlowsDrainingModeTest {
     @Test
     fun `flows draining mode rejects start flows commands through rpc`() {
         driver(DriverParameters(startNodesInProcess = false, portAllocation = portAllocation, notarySpecs = emptyList())) {
-            startNode(rpcUsers = users).getOrThrow().rpc.apply {
+            startNode(NodeParameters(rpcUsers = users)).getOrThrow().rpc.apply {
                 setFlowsDrainingModeEnabled(true)
 
                 val error: Throwable? = catchThrowable { startFlow(RpcFlowsDrainingModeTest::NoOpFlow) }

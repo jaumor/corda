@@ -15,10 +15,7 @@ import net.corda.finance.flows.CashPaymentFlow
 import net.corda.node.services.Permissions.Companion.invokeRpc
 import net.corda.node.services.Permissions.Companion.startFlow
 import net.corda.testing.core.*
-import net.corda.testing.driver.DriverParameters
-import net.corda.testing.driver.NodeHandle
-import net.corda.testing.driver.OutOfProcess
-import net.corda.testing.driver.driver
+import net.corda.testing.driver.*
 import net.corda.testing.node.NotarySpec
 import net.corda.testing.node.User
 import net.corda.testing.node.internal.DummyClusterSpec
@@ -50,7 +47,7 @@ class DistributedServiceTests {
                                 cluster = DummyClusterSpec(clusterSize = 3, compositeServiceIdentity = compositeIdentity))
                 )
         )) {
-            alice = startNode(providedName = ALICE_NAME, rpcUsers = listOf(testUser)).getOrThrow()
+            alice = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(testUser))).getOrThrow()
             raftNotaryIdentity = defaultNotaryIdentity
             notaryNodes = defaultNotaryHandle.nodeHandles.getOrThrow().map { it as OutOfProcess }
 

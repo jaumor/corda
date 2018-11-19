@@ -6,6 +6,7 @@ import net.corda.finance.flows.CashException
 import net.corda.finance.flows.test.CashExceptionThrowingFlow
 import net.corda.node.services.Permissions.Companion.all
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.assertj.core.api.Assertions.assertThat
@@ -16,7 +17,7 @@ class CashExceptionSerialisationTest {
     @Test
     fun `cash exception with a cause can be serialised with AMQP`() {
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val node = startNode(rpcUsers = listOf(User("mark", "dadada", setOf(all())))).getOrThrow()
+            val node = startNode(NodeParameters(rpcUsers = listOf(User("mark", "dadada", setOf(all()))))).getOrThrow()
             val action = { node.rpc.startFlow(::CashExceptionThrowingFlow).returnValue.getOrThrow() }
             assertThatThrownBy(action).isInstanceOfSatisfying(CashException::class.java) { thrown ->
                 assertThat(thrown).hasNoCause()

@@ -21,6 +21,7 @@ import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
 import net.corda.testing.core.dummyCommand
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.junit.Test
@@ -101,7 +102,7 @@ class ScheduledFlowIntegrationTests {
         )) {
             val N = 23
             val rpcUser = User("admin", "admin", setOf("ALL"))
-            val (alice, bob) = listOf(ALICE_NAME, BOB_NAME).map { startNode(providedName = it, rpcUsers = listOf(rpcUser)) }.transpose().getOrThrow()
+            val (alice, bob) = listOf(ALICE_NAME, BOB_NAME).map { startNode(NodeParameters(providedName = it, rpcUsers = listOf(rpcUser))) }.transpose().getOrThrow()
 
             val aliceClient = CordaRPCClient(alice.rpcAddress).start(rpcUser.username, rpcUser.password)
             val bobClient = CordaRPCClient(bob.rpcAddress).start(rpcUser.username, rpcUser.password)

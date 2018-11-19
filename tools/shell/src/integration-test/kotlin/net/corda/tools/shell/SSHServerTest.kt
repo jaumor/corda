@@ -16,6 +16,7 @@ import net.corda.node.services.Permissions.Companion.invokeRpc
 import net.corda.node.services.Permissions.Companion.startFlow
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.assertj.core.api.Assertions.assertThat
@@ -23,6 +24,7 @@ import org.bouncycastle.util.io.Streams
 import org.junit.Ignore
 import org.junit.Test
 import java.net.ConnectException
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -32,8 +34,7 @@ class SSHServerTest {
         val user = User("u", "p", setOf())
         // The driver will automatically pick up the annotated flows below
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user))
-            node.getOrThrow()
+            startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user))).getOrThrow()
 
             val session = JSch().getSession("u", "localhost", 2222)
             session.setConfig("StrictHostKeyChecking", "no")
@@ -53,9 +54,11 @@ class SSHServerTest {
         val user = User("u", "p", setOf())
         // The driver will automatically pick up the annotated flows below
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user),
-                    customOverrides = mapOf("sshd" to mapOf("port" to 2222)) /*, startInSameProcess = true */)
-            node.getOrThrow()
+            startNode(NodeParameters(
+                    providedName = ALICE_NAME,
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf("sshd" to mapOf("port" to 2222))
+            )).getOrThrow()
 
             val session = JSch().getSession("u", "localhost", 2222)
             session.setConfig("StrictHostKeyChecking", "no")
@@ -72,9 +75,11 @@ class SSHServerTest {
         val user = User("u", "p", setOf())
         // The driver will automatically pick up the annotated flows below
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user),
-                    customOverrides = mapOf("sshd" to mapOf("port" to 2222)))
-            node.getOrThrow()
+            startNode(NodeParameters(
+                    providedName = ALICE_NAME,
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf("sshd" to mapOf("port" to 2222))
+            )).getOrThrow()
 
             val session = JSch().getSession("u", "localhost", 2222)
             session.setConfig("StrictHostKeyChecking", "no")
@@ -85,7 +90,7 @@ class SSHServerTest {
                 fail("Server should reject invalid credentials")
             } catch (e: JSchException) {
                 //There is no specialized exception for this
-                assertTrue(e.message == "Auth fail")
+                assertEquals(e.message, "Auth fail")
             }
         }
     }
@@ -96,9 +101,11 @@ class SSHServerTest {
                 invokeRpc(CordaRPCOps::wellKnownPartyFromX500Name)))
         // The driver will automatically pick up the annotated flows below
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user),
-                    customOverrides = mapOf("sshd" to mapOf("port" to 2222)))
-            node.getOrThrow()
+            startNode(NodeParameters(
+                    providedName = ALICE_NAME,
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf("sshd" to mapOf("port" to 2222))
+            )).getOrThrow()
 
             val session = JSch().getSession("u", "localhost", 2222)
             session.setConfig("StrictHostKeyChecking", "no")
@@ -125,9 +132,11 @@ class SSHServerTest {
         val user = User("u", "p", setOf(startFlow<FlowICanRun>()))
         // The driver will automatically pick up the annotated flows below
         driver(DriverParameters(notarySpecs = emptyList())) {
-            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user),
-                    customOverrides = mapOf("sshd" to mapOf("port" to 2222)))
-            node.getOrThrow()
+            startNode(NodeParameters(
+                    providedName = ALICE_NAME,
+                    rpcUsers = listOf(user),
+                    customOverrides = mapOf("sshd" to mapOf("port" to 2222))
+            )).getOrThrow()
 
             val session = JSch().getSession("u", "localhost", 2222)
             session.setConfig("StrictHostKeyChecking", "no")

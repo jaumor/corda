@@ -45,7 +45,7 @@ class RpcExceptionHandlingTest {
         }
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val devModeNode = startNode(params, BOB_NAME).getOrThrow()
+            val devModeNode = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow()
             val node = startNode(ALICE_NAME, devMode = false, parameters = params).getOrThrow()
 
             assertThatThrownExceptionIsReceivedUnwrapped(devModeNode)
@@ -64,7 +64,7 @@ class RpcExceptionHandlingTest {
         }
 
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList())) {
-            val devModeNode = startNode(params, BOB_NAME).getOrThrow()
+            val devModeNode = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow()
             val node = startNode(ALICE_NAME, devMode = false, parameters = params).getOrThrow()
 
             assertThatThrownBy { devModeNode.throwExceptionFromFlow() }.isInstanceOfSatisfying(FlowException::class.java) { exception ->

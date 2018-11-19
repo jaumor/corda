@@ -17,6 +17,7 @@ import net.corda.testing.contracts.DummyContract
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
 import net.corda.testing.driver.NodeHandle
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.bouncycastle.util.io.Streams
@@ -31,7 +32,7 @@ class HashLookupCommandTest {
         val user = User("u", "p", setOf(Permissions.all()))
 
         driver(DriverParameters(notarySpecs = emptyList(), extraCordappPackagesToScan = listOf("net.corda.testing.contracts"))) {
-            val nodeFuture = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true)
+            val nodeFuture = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true))
             val node = nodeFuture.getOrThrow()
             val txId = issueTransaction(node)
 

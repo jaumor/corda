@@ -17,6 +17,7 @@ import net.corda.testing.core.dummyCommand
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
 import net.corda.testing.driver.InProcess
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.ClusterSpec
 import net.corda.testing.node.NotarySpec
@@ -35,7 +36,7 @@ class RaftNotaryServiceTests {
                 extraCordappPackagesToScan = listOf("net.corda.testing.contracts"),
                 notarySpecs = listOf(NotarySpec(notaryName, cluster = ClusterSpec.Raft(clusterSize = 3)))
         )) {
-            val bankA = startNode(providedName = DUMMY_BANK_A_NAME).map { (it as InProcess) }.getOrThrow()
+            val bankA = startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME)).map { (it as InProcess) }.getOrThrow()
             val inputState = issueState(bankA, defaultNotaryIdentity)
 
             val firstTxBuilder = TransactionBuilder(defaultNotaryIdentity)
@@ -68,9 +69,12 @@ class RaftNotaryServiceTests {
                 extraCordappPackagesToScan = listOf("net.corda.testing.contracts"),
                 notarySpecs = listOf(NotarySpec(notaryName, cluster = ClusterSpec.Raft(clusterSize = 3)))
         )) {
-            val bankA = startNode(providedName = DUMMY_BANK_A_NAME).map { (it as InProcess) }.getOrThrow()
-            val builder = DummyContract.generateInitial(Random().nextInt(), defaultNotaryIdentity, bankA.services.myInfo.singleIdentity().ref(0))
-                    .setTimeWindow(bankA.services.clock.instant(), 30.seconds)
+            val bankA = startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME)).map { (it as InProcess) }.getOrThrow()
+            val builder = DummyContract.generateInitial(
+                    Random().nextInt(),
+                    defaultNotaryIdentity,
+                    bankA.services.myInfo.singleIdentity().ref(0)
+            ).setTimeWindow(bankA.services.clock.instant(), 30.seconds)
             val issueTx = bankA.services.signInitialTransaction(builder)
 
             bankA.startFlow(NotaryFlow.Client(issueTx)).getOrThrow()

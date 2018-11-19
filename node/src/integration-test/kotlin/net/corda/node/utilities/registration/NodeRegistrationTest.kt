@@ -17,6 +17,7 @@ import net.corda.nodeapi.internal.crypto.X509Utilities.CORDA_ROOT_CA
 import net.corda.testing.common.internal.testNetworkParameters
 import net.corda.testing.core.SerializationEnvironmentRule
 import net.corda.testing.core.singleIdentity
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.internal.DEV_ROOT_CA
 import net.corda.testing.node.NotarySpec
@@ -93,8 +94,8 @@ class NodeRegistrationTest {
                 notaryCustomOverrides = mapOf("devMode" to false)
         ) {
           val (alice, genevieve) = listOf(
-                    startNode(providedName = aliceName, customOverrides = mapOf("devMode" to false)),
-                    startNode(providedName = genevieveName, customOverrides = mapOf("devMode" to false))
+                    startNode(NodeParameters(providedName = aliceName, customOverrides = mapOf("devMode" to false))),
+                    startNode(NodeParameters(providedName = genevieveName, customOverrides = mapOf("devMode" to false)))
             ).transpose().getOrThrow()
 
             assertThat(registrationHandler.idsPolled).containsOnly(

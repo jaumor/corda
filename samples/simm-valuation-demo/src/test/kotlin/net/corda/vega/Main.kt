@@ -5,6 +5,7 @@ import net.corda.testing.core.DUMMY_BANK_A_NAME
 import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.core.DUMMY_BANK_C_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 
 /**
@@ -15,9 +16,9 @@ import net.corda.testing.driver.driver
 fun main(args: Array<String>) {
     driver(DriverParameters(waitForAllNodesToFinish = true)) {
         val (nodeA, nodeB, nodeC) = listOf(
-                startNode(providedName = DUMMY_BANK_A_NAME),
-                startNode(providedName = DUMMY_BANK_B_NAME),
-                startNode(providedName = DUMMY_BANK_C_NAME)
+                startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME)),
+                startNode(NodeParameters(providedName = DUMMY_BANK_B_NAME)),
+                startNode(NodeParameters(providedName = DUMMY_BANK_C_NAME))
         ).map { it.getOrThrow() }
 
         startWebserver(nodeA)

@@ -25,6 +25,7 @@ import net.corda.testing.core.DUMMY_NOTARY_NAME
 import net.corda.testing.core.SerializationEnvironmentRule
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.MockCordappConfigProvider
 import net.corda.testing.internal.rigorousMock
@@ -92,9 +93,10 @@ class AttachmentLoadingTests {
     @Test
     fun `test that attachments retrieved over the network are not used for code`() {
         withoutTestSerialization {
+            val cordapps = cordappsForPackages("net.corda.finance.contracts.isolated")
             driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = emptySet())) {
-                val bankA = startNode(providedName = bankAName, additionalCordapps = cordappsForPackages("net.corda.finance.contracts.isolated")).getOrThrow()
-                val bankB = startNode(providedName = bankBName, additionalCordapps = cordappsForPackages("net.corda.finance.contracts.isolated")).getOrThrow()
+                val bankA = startNode(NodeParameters(providedName = bankAName, additionalCordapps = cordapps)).getOrThrow()
+                val bankB = startNode(NodeParameters(providedName = bankBName, additionalCordapps = cordapps)).getOrThrow()
                 assertFailsWith<CordaRuntimeException>("Party C=CH,L=Zurich,O=BankB rejected session request: Don't know net.corda.finance.contracts.isolated.IsolatedDummyFlow\$Initiator") {
                     bankA.rpc.startFlowDynamic(flowInitiatorClass, bankB.nodeInfo.legalIdentities.first()).returnValue.getOrThrow()
                 }

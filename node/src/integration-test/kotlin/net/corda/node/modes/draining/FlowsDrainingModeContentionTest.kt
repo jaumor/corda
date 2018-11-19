@@ -22,6 +22,7 @@ import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
@@ -57,8 +58,8 @@ class FlowsDrainingModeContentionTest {
                 portAllocation = portAllocation,
                 extraCordappPackagesToScan = listOf(MessageState::class.packageName)
         )) {
-            val nodeA = startNode(providedName = ALICE_NAME, rpcUsers = users).getOrThrow()
-            val nodeB = startNode(providedName = BOB_NAME, rpcUsers = users).getOrThrow()
+            val nodeA = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = users)).getOrThrow()
+            val nodeB = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = users)).getOrThrow()
 
             val nodeARpcInfo = RpcInfo(nodeA.rpcAddress, user.username, user.password)
             val flow = nodeA.rpc.startFlow(::ProposeTransactionAndWaitForCommit, message, nodeARpcInfo, nodeB.nodeInfo.singleIdentity(), defaultNotaryIdentity)

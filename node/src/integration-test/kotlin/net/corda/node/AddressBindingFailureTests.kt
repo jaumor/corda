@@ -4,6 +4,7 @@ import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.getOrThrow
 import net.corda.core.internal.errors.AddressBindingException
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import org.assertj.core.api.Assertions.assertThat
@@ -31,13 +32,12 @@ class AddressBindingFailureTests {
     fun `H2 address`() = assertBindExceptionForOverrides { address -> mapOf("h2Settings" to mapOf("address" to address.toString()), "dataSourceProperties.dataSource.password" to "password") }
 
     private fun assertBindExceptionForOverrides(overrides: (NetworkHostAndPort) -> Map<String, Any?>) {
-
         ServerSocket(0).use { socket ->
-
             val address = InetSocketAddress(socket.localPort).toNetworkHostAndPort()
             driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), inMemoryDB = false, portAllocation = portAllocation)) {
-
-                assertThatThrownBy { startNode(customOverrides = overrides(address)).getOrThrow() }.isInstanceOfSatisfying(AddressBindingException::class.java) { exception ->
+                assertThatThrownBy {
+                    startNode(NodeParameters(customOverrides = overrides(address))).getOrThrow()
+                }.isInstanceOfSatisfying(AddressBindingException::class.java) { exception ->
                     assertThat(exception.addresses).contains(address).withFailMessage("Expected addresses to contain $address but was ${exception.addresses}.")
                 }
             }

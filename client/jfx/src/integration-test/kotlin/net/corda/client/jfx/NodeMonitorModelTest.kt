@@ -26,6 +26,7 @@ import net.corda.finance.flows.CashPaymentFlow
 import net.corda.node.services.Permissions.Companion.all
 import net.corda.testing.core.*
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.chooseIdentity
 import net.corda.testing.node.User
@@ -51,9 +52,9 @@ class NodeMonitorModelTest {
     private fun setup(runTest: () -> Unit) {
         driver(DriverParameters(extraCordappPackagesToScan = listOf("net.corda.finance"))) {
             val cashUser = User("user1", "test", permissions = setOf(all()))
-            val aliceNodeHandle = startNode(providedName = ALICE_NAME, rpcUsers = listOf(cashUser)).getOrThrow()
+            val aliceNodeHandle = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(cashUser))).getOrThrow()
             aliceNode = aliceNodeHandle.nodeInfo
-            newNode = { nodeName -> startNode(providedName = nodeName).getOrThrow().nodeInfo }
+            newNode = { nodeName -> startNode(NodeParameters(providedName = nodeName)).getOrThrow().nodeInfo }
             val monitor = NodeMonitorModel()
             stateMachineTransactionMapping = monitor.stateMachineTransactionMapping.bufferUntilSubscribed()
             stateMachineUpdates = monitor.stateMachineUpdates.bufferUntilSubscribed()
@@ -66,7 +67,7 @@ class NodeMonitorModelTest {
             rpc = monitor.proxyObservable.value!!.cordaRPCOps
             notaryParty = defaultNotaryIdentity
 
-            val bobNodeHandle = startNode(providedName = BOB_NAME, rpcUsers = listOf(cashUser)).getOrThrow()
+            val bobNodeHandle = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = listOf(cashUser))).getOrThrow()
             bobNode = bobNodeHandle.nodeInfo
             val monitorBob = NodeMonitorModel()
             stateMachineUpdatesBob = monitorBob.stateMachineUpdates.bufferUntilSubscribed()

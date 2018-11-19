@@ -20,6 +20,7 @@ import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -48,8 +49,8 @@ class FlowRetryTest {
                 startNodesInProcess = isQuasarAgentSpecified(),
                 notarySpecs = emptyList()
         )) {
-            val nodeAHandle = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
-            val nodeBHandle = startNode(providedName = BOB_NAME, rpcUsers = listOf(user)).getOrThrow()
+            val nodeAHandle = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user))).getOrThrow()
+            val nodeBHandle = startNode(NodeParameters(providedName = BOB_NAME, rpcUsers = listOf(user))).getOrThrow()
 
             val result = CordaRPCClient(nodeAHandle.rpcAddress).start(user.username, user.password).use {
                 it.proxy.startFlow(::InitiatorFlow, numSessions, numIterations, nodeBHandle.nodeInfo.singleIdentity()).returnValue.getOrThrow()
@@ -67,7 +68,7 @@ class FlowRetryTest {
                 startNodesInProcess = isQuasarAgentSpecified(),
                 notarySpecs = emptyList()
         )) {
-            val nodeAHandle = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
+            val nodeAHandle = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user))).getOrThrow()
 
             CordaRPCClient(nodeAHandle.rpcAddress).start(user.username, user.password).use {
                 it.proxy.startFlow(::AsyncRetryFlow).returnValue.getOrThrow()
@@ -83,7 +84,7 @@ class FlowRetryTest {
                     startNodesInProcess = isQuasarAgentSpecified(),
                     notarySpecs = emptyList()
             )) {
-                val nodeAHandle = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
+                val nodeAHandle = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user))).getOrThrow()
 
                 val result = CordaRPCClient(nodeAHandle.rpcAddress).start(user.username, user.password).use {
                     it.proxy.startFlow(::RetryFlow).returnValue.getOrThrow()
@@ -101,7 +102,7 @@ class FlowRetryTest {
                     startNodesInProcess = isQuasarAgentSpecified(),
                     notarySpecs = emptyList()
             )) {
-                val nodeAHandle = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
+                val nodeAHandle = startNode(NodeParameters(providedName = ALICE_NAME, rpcUsers = listOf(user))).getOrThrow()
 
                 val result = CordaRPCClient(nodeAHandle.rpcAddress).start(user.username, user.password).use {
                     it.proxy.startFlow(::ThrowingFlow).returnValue.getOrThrow()
@@ -220,7 +221,7 @@ enum class Step { First, BeforeInitiate, AfterInitiate, AfterInitiateSendReceive
 data class Visited(val sessionNum: Int, val iterationNum: Int, val step: Step)
 
 @StartableByRPC
-class RetryFlow() : FlowLogic<String>(), IdempotentFlow {
+class RetryFlow : FlowLogic<String>(), IdempotentFlow {
     companion object {
         object FIRST_STEP : ProgressTracker.Step("Step one")
 
@@ -233,12 +234,11 @@ class RetryFlow() : FlowLogic<String>(), IdempotentFlow {
     override fun call(): String {
         progressTracker.currentStep = FIRST_STEP
         throw ExceptionToCauseFiniteRetry()
-        return "Result"
     }
 }
 
 @StartableByRPC
-class AsyncRetryFlow() : FlowLogic<String>(), IdempotentFlow {
+class AsyncRetryFlow : FlowLogic<String>(), IdempotentFlow {
     companion object {
         object FIRST_STEP : ProgressTracker.Step("Step one")
 
@@ -268,7 +268,7 @@ class AsyncRetryFlow() : FlowLogic<String>(), IdempotentFlow {
 }
 
 @StartableByRPC
-class ThrowingFlow() : FlowLogic<String>(), IdempotentFlow {
+class ThrowingFlow : FlowLogic<String>(), IdempotentFlow {
     companion object {
         object FIRST_STEP : ProgressTracker.Step("Step one")
 

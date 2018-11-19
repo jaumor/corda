@@ -15,6 +15,7 @@ import net.corda.testing.core.BOB_NAME
 import net.corda.testing.core.singleIdentity
 import net.corda.testing.driver.DriverDSL
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.node.TestCordapp
 import net.corda.testing.node.internal.ListenProcessDeathException
@@ -48,8 +49,8 @@ class FlowCheckpointVersionNodeStartupCheckTest {
         return driver(parametersForRestartingNodes(listOf(defaultCordapp))) {
             createSuspendedFlowInBob(cordapps = emptySet())
             // Bob will resume the flow
-            val alice = startNode(providedName = ALICE_NAME).getOrThrow()
-            startNode(providedName = BOB_NAME).getOrThrow()
+            val alice = startNode(NodeParameters(providedName = ALICE_NAME)).getOrThrow()
+            startNode(NodeParameters(providedName = BOB_NAME)).getOrThrow()
             val page = alice.rpc.vaultTrack(MessageState::class.java)
             val result = if (page.snapshot.states.isNotEmpty()) {
                 page.snapshot.states.first()
@@ -106,7 +107,7 @@ class FlowCheckpointVersionNodeStartupCheckTest {
 
     private fun DriverDSL.createSuspendedFlowInBob(cordapps: Set<TestCordapp>) {
         val (alice, bob) = listOf(ALICE_NAME, BOB_NAME)
-                .map { startNode(providedName = it, additionalCordapps = cordapps) }
+                .map { startNode(NodeParameters(providedName = it, additionalCordapps = cordapps)) }
                 .transpose()
                 .getOrThrow()
         alice.stop()
@@ -118,12 +119,12 @@ class FlowCheckpointVersionNodeStartupCheckTest {
 
     private fun DriverDSL.assertBobFailsToStartWithLogMessage(cordapps: Collection<TestCordapp>, logMessage: String) {
         assertFailsWith(ListenProcessDeathException::class) {
-            startNode(
+            startNode(NodeParameters(
                     providedName = BOB_NAME,
                     customOverrides = mapOf("devMode" to false),
                     additionalCordapps = cordapps,
                     regenerateCordappsOnStart = true
-            ).getOrThrow()
+            )).getOrThrow()
         }
 
         val logDir = baseDirectory(BOB_NAME) / NodeStartup.LOGS_DIRECTORY_NAME

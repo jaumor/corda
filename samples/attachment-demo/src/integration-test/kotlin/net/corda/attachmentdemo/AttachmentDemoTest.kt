@@ -6,6 +6,7 @@ import net.corda.node.services.Permissions.Companion.all
 import net.corda.testing.core.DUMMY_BANK_A_NAME
 import net.corda.testing.core.DUMMY_BANK_B_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.PortAllocation
 import net.corda.testing.driver.driver
 import net.corda.testing.node.User
@@ -20,8 +21,8 @@ class AttachmentDemoTest {
         driver(DriverParameters(portAllocation = PortAllocation.Incremental(20000), startNodesInProcess = true)) {
             val demoUser = listOf(User("demo", "demo", setOf(all())))
             val (nodeA, nodeB) = listOf(
-                    startNode(providedName = DUMMY_BANK_A_NAME, rpcUsers = demoUser, maximumHeapSize = "1g"),
-                    startNode(providedName = DUMMY_BANK_B_NAME, rpcUsers = demoUser, maximumHeapSize = "1g")
+                    startNode(NodeParameters(providedName = DUMMY_BANK_A_NAME, rpcUsers = demoUser, maximumHeapSize = "1g")),
+                    startNode(NodeParameters(providedName = DUMMY_BANK_B_NAME, rpcUsers = demoUser, maximumHeapSize = "1g"))
             ).map { it.getOrThrow() }
             val webserverHandle = startWebserver(nodeB).getOrThrow()
 

@@ -11,6 +11,7 @@ import net.corda.node.services.Permissions
 import net.corda.node.services.Permissions.Companion.invokeRpc
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.driver.DriverParameters
+import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
 import net.corda.testing.internal.chooseIdentity
 import net.corda.testing.node.User
@@ -31,14 +32,14 @@ class FlowsExecutionModeRpcTest {
         val user = User("mark", "dadada", setOf(invokeRpc("setFlowsDrainingModeEnabled"), invokeRpc("isFlowsDrainingModeEnabled")))
         driver(DriverParameters(inMemoryDB = false, startNodesInProcess = true, notarySpecs = emptyList())) {
             val nodeName = {
-                val nodeHandle = startNode(rpcUsers = listOf(user)).getOrThrow()
+                val nodeHandle = startNode(NodeParameters(rpcUsers = listOf(user))).getOrThrow()
                 val nodeName = nodeHandle.nodeInfo.chooseIdentity().name
                 nodeHandle.rpc.setFlowsDrainingModeEnabled(true)
                 nodeHandle.stop()
                 nodeName
             }()
 
-            val nodeHandle = startNode(providedName = nodeName, rpcUsers = listOf(user)).getOrThrow()
+            val nodeHandle = startNode(NodeParameters(providedName = nodeName, rpcUsers = listOf(user))).getOrThrow()
             assertThat(nodeHandle.rpc.isFlowsDrainingModeEnabled()).isEqualTo(true)
             nodeHandle.stop()
         }
