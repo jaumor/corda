@@ -104,7 +104,8 @@ class WireTransaction(componentGroups: List<ComponentGroup>, val privacySalt: Pr
                 resolveIdentity = { services.identityService.partyFromKey(it) },
                 resolveAttachment = { services.attachments.openAttachment(it) },
                 resolveStateRefComponent = { resolveStateRefBinaryComponent(it, services) },
-                networkParameters = services.networkParameters
+                networkParameters = services.networkParameters,
+                resolveContractAttachment = { services.loadContractAttachment(it) }
         )
     }
 
@@ -121,17 +122,18 @@ class WireTransaction(componentGroups: List<ComponentGroup>, val privacySalt: Pr
             resolveIdentity: (PublicKey) -> Party?,
             resolveAttachment: (SecureHash) -> Attachment?,
             resolveStateRef: (StateRef) -> TransactionState<*>?,
-            @Suppress("UNUSED_PARAMETER") resolveContractAttachment: (TransactionState<ContractState>) -> AttachmentId?
+            resolveContractAttachment: (StateRef) -> Attachment?
     ): LedgerTransaction {
         // This reverts to serializing the resolved transaction state.
-        return toLedgerTransactionInternal(resolveIdentity, resolveAttachment, { stateRef -> resolveStateRef(stateRef)?.serialize() }, null)
+        return toLedgerTransactionInternal(resolveIdentity, resolveAttachment, { stateRef -> resolveStateRef(stateRef)?.serialize() }, null, resolveContractAttachment)
     }
 
     private fun toLedgerTransactionInternal(
             resolveIdentity: (PublicKey) -> Party?,
             resolveAttachment: (SecureHash) -> Attachment?,
             resolveStateRefComponent: (StateRef) -> SerializedBytes<TransactionState<ContractState>>?,
-            networkParameters: NetworkParameters?
+            networkParameters: NetworkParameters?,
+            resolveContractAttachment: (StateRef) -> Attachment?
     ): LedgerTransaction {
         // Look up public keys to authenticated identities.
         val authenticatedArgs = commands.lazyMapped { cmd, _ ->
@@ -159,11 +161,33 @@ class WireTransaction(componentGroups: List<ComponentGroup>, val privacySalt: Pr
             resolveAttachment(att) ?: throw AttachmentResolutionException(att)
         }
 
-        val ltx = LedgerTransaction.makeLedgerTransaction(resolvedInputs, outputs, authenticatedArgs, attachments, id, notary, timeWindow, privacySalt, networkParameters, resolvedReferences, componentGroups, resolvedInputBytes, resolvedReferenceBytes)
+        val inputContractClassToJarVersion = resolveContractAttachmentVersion(resolvedInputs, resolveAttachment, resolveContractAttachment)
+
+        val ltx = LedgerTransaction.makeLedgerTransaction(resolvedInputs, outputs, authenticatedArgs, attachments, id, notary, timeWindow, privacySalt, networkParameters, resolvedReferences, componentGroups, resolvedInputBytes, resolvedReferenceBytes,
+                inputContractClassToJarVersion)
 
         checkTransactionSize(ltx, networkParameters?.maxTransactionSize ?: DEFAULT_MAX_TX_SIZE)
 
         return ltx
+    }
+
+    private fun resolveContractAttachmentVersion(states: List<StateAndRef<ContractState>>,
+                                                 resolveAttachment: (SecureHash) -> Attachment?,
+                                                 resolveContractAttachment: (StateRef) -> Attachment?)
+            : Map<ContractClassName, Set<Version>> {
+        val contractClassAndAttachmentId: List<Pair<ContractClassName, AttachmentId>> = states.map {
+            Pair(it.state.contract, resolveContractAttachment(it.ref))
+        }.filter { it.second != null }.map { Pair(it.first, it.second as AttachmentId) }
+
+        val contractClassAndAttachment: List<Pair<ContractClassName, Attachment>> = contractClassAndAttachmentId.map { x ->
+            Pair(x.first, resolveAttachment(x.second))
+        }.filter { it.second != null }.map { Pair(it.first, it.second as Attachment) }
+
+        val contractClassAndVersion: List<Pair<ContractClassName, Version>> = contractClassAndAttachment
+                .map { Pair(it.first, Version(it.second.openAsJAR().manifest.mainAttributes.getValue("Implementation-Version"))) }
+
+        return contractClassAndVersion.groupBy { it.first }
+                .mapValues { it.value.map { p -> p.second }.toSet() }
     }
 
     /**

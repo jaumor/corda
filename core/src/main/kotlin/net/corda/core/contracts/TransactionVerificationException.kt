@@ -201,4 +201,9 @@ abstract class TransactionVerificationException(val txId: SecureHash, message: S
             """The Contract attachment JAR: $attachmentHash containing the contract: $contractClass is not signed by the owner specified in the network parameters.
            Please check the source of this attachment and if it is malicious contact your zone operator to report this incident.
            For details see: https://docs.corda.net/network-map.html#network-parameters""".trimIndent(), null)
+
+    @KeepForDJVM
+    class TransactionContractClassVersionDowngradation(txId: SecureHash, contractClassName: ContractClassName, outputVersion: String)
+        : TransactionVerificationException(txId, "Output state of contract class $contractClassName version $outputVersion is lower that" +
+            " one of contract class version of input state.", null)
 }

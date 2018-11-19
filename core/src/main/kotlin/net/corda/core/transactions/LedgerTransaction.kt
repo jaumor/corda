@@ -51,6 +51,7 @@ data class LedgerTransaction private constructor(
         val componentGroups: List<ComponentGroup>?,
         val resolvedInputBytes: List<SerializedStateAndRef>?,
         val resolvedReferenceBytes: List<SerializedStateAndRef>?
+        val inputStatesContractClassNameToVersions: Map<ContractClassName,Set<Version>>
 ) : FullTransaction() {
 
     @Deprecated("Client code should not instantiate LedgerTransaction.")
@@ -139,7 +140,7 @@ data class LedgerTransaction private constructor(
 
             val internalTx = createInternalLedgerTransaction()
 
-            // TODO - verify for version downgrade
+            validateContractVersions(contractAttachmentsByContract)
             validatePackageOwnership(contractAttachmentsByContract)
             validateStatesAgainstContract(internalTx)
             verifyConstraintsValidity(internalTx, contractAttachmentsByContract, transactionClassLoader)
@@ -148,6 +149,15 @@ data class LedgerTransaction private constructor(
         }
     }
 
+    private fun validateContractVersions(contractAttachmentsByContract: Map<ContractClassName, ContractAttachment>){
+         contractAttachmentsByContract.forEach { contractClassName, attachment ->
+            val version = Version(attachment.openAsJAR().manifest.mainAttributes.getValue("Implementation-Version"))
+            val ok = inputStatesContractClassNameToVersions[contractClassName]?.all { version >= it } ?: true
+            if (!ok) {
+                throw TransactionVerificationException.TransactionContractClassVersionDowngradation(this.id, contractClassName, version.toString())
+            }
+        }
+    }
     /**
      * Verify that package ownership is respected.
      *

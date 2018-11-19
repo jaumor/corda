@@ -64,7 +64,7 @@ fun TestCordappImpl.packageAsJar(file: Path) {
             .scan()
 
     scanResult.use {
-        val manifest = createTestManifest(name, title, version, vendor, targetVersion)
+        val manifest = createTestManifest(name, title, version, vendor, targetVersion, implementationVersion)
         JarOutputStream(file.outputStream(), manifest).use { jos ->
             val time = FileTime.from(Instant.EPOCH)
             // The same resource may be found in different locations (this will happen when running from gradle) so just
