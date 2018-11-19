@@ -3,13 +3,15 @@ package net.corda.core.serialization.internal
 import net.corda.core.contracts.Attachment
 import net.corda.core.contracts.ContractAttachment
 import net.corda.core.crypto.SecureHash
+import net.corda.core.crypto.sha256
 import net.corda.core.internal.VisibleForTesting
+import net.corda.core.internal.createSimpleCache
 import net.corda.core.internal.isUploaderTrusted
+import net.corda.core.internal.toSynchronised
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.serialization.SerializationFactory
 import net.corda.core.serialization.internal.AttachmentURLStreamHandlerFactory.toUrl
-import net.corda.core.internal.createSimpleCache
-import net.corda.core.internal.toSynchronised
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.*
@@ -54,7 +56,7 @@ class AttachmentsClassLoader(attachments: List<Attachment>, parent: ClassLoader 
         }
 
         private fun requireNoDuplicates(attachments: List<Attachment>) {
-            val classLoaderEntries = mutableSetOf<String>()
+            val classLoaderEntries = mutableMapOf<String,Attachment>()
             for (attachment in attachments) {
                 attachment.openAsJAR().use { jar ->
                     while (true) {
@@ -67,14 +69,31 @@ class AttachmentsClassLoader(attachments: List<Attachment>, parent: ClassLoader 
                         // filesystem tries to be case insensitive. This may break developers who attempt to use ProGuard.
                         //
                         // Also convert to Unix path separators as all resource/class lookups will expect this.
-                        // If 2 entries have the same CRC, it means the same file is present in both attachments, so that is ok. TODO - Mike, wdyt?
+                        //
                         val path = entry.name.toLowerCase().replace('\\', '/')
                         if (shouldCheckForNoOverlap(path)) {
-                            if (path in classLoaderEntries) throw OverlappingAttachments(path)
-                            classLoaderEntries.add(path)
+                            if (path in classLoaderEntries.keys) {
+                                // If 2 entries have the same content hash, it means the same file is present in both attachments, so that is ok.
+                                val contentHash = readAttachment(attachment, path).sha256()
+                                val originalAttachment = classLoaderEntries[path] ?: throw OverlappingAttachments(path)
+                                val originalContentHash = readAttachment(originalAttachment, path).sha256()
+                                if (contentHash == originalContentHash)
+                                    continue
+                                else
+                                    throw OverlappingAttachments(path)
+                            }
+                            classLoaderEntries[path] = attachment
                         }
                     }
                 }
+            }
+        }
+
+        @VisibleForTesting
+        private fun readAttachment(attachment: Attachment, filepath: String): ByteArray {
+            ByteArrayOutputStream().use {
+                attachment.extractFile(filepath, it)
+                return it.toByteArray()
             }
         }
     }

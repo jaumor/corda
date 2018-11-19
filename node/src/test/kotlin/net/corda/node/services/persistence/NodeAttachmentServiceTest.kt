@@ -226,7 +226,7 @@ class NodeAttachmentServiceTest {
 
             assertEquals(
                     4,
-                    storage.queryAttachmentsFully(AttachmentsQueryCriteria(contractClassNamesCondition = Builder.equal(listOf("com.example.MyContract")))).size
+                    storage.queryAttachments(AttachmentsQueryCriteria(contractClassNamesCondition = Builder.equal(listOf("com.example.MyContract")))).size
             )
 
             assertEquals(
@@ -241,7 +241,7 @@ class NodeAttachmentServiceTest {
 
             assertEquals(
                     1,
-                    storage.queryAttachmentsFully(AttachmentsQueryCriteria(
+                    storage.queryAttachments(AttachmentsQueryCriteria(
                             contractClassNamesCondition = Builder.equal(listOf("com.example.MyContract")),
                             versionCondition = Builder.equal(listOf("2.0")),
                             isSignedCondition = Builder.equal(true))).size
@@ -249,7 +249,7 @@ class NodeAttachmentServiceTest {
 
             assertEquals(
                     2,
-                    storage.queryAttachmentsFully(AttachmentsQueryCriteria(
+                    storage.queryAttachments(AttachmentsQueryCriteria(
                             contractClassNamesCondition = Builder.equal(listOf("com.example.MyContract", "com.example.AnotherContract")),
                             versionCondition = Builder.equal(listOf("1.0")),
                             isSignedCondition = Builder.equal(true))).size
