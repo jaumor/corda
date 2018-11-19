@@ -50,7 +50,7 @@ data class LedgerTransaction private constructor(
         override val references: List<StateAndRef<ContractState>>,
         val componentGroups: List<ComponentGroup>?,
         val resolvedInputBytes: List<SerializedStateAndRef>?,
-        val resolvedReferenceBytes: List<SerializedStateAndRef>?
+        val resolvedReferenceBytes: List<SerializedStateAndRef>?,
         val inputStatesContractClassNameToVersions: Map<ContractClassName,Set<Version>>
 ) : FullTransaction() {
 
@@ -64,7 +64,7 @@ data class LedgerTransaction private constructor(
             notary: Party?,
             timeWindow: TimeWindow?,
             privacySalt: PrivacySalt
-    ) : this(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, null, emptyList(), null, null, null)
+    ) : this(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, null, emptyList(), null, null, null, emptyMap())
 
     @Deprecated("Client code should not instantiate LedgerTransaction.")
     constructor(
@@ -77,7 +77,7 @@ data class LedgerTransaction private constructor(
             timeWindow: TimeWindow?,
             privacySalt: PrivacySalt,
             networkParameters: NetworkParameters?
-    ) : this(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, networkParameters, emptyList(), null, null, null)
+    ) : this(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, networkParameters, emptyList(), null, null, null, emptyMap())
 
     //DOCEND 1
     init {
@@ -104,8 +104,9 @@ data class LedgerTransaction private constructor(
                 references: List<StateAndRef<ContractState>>,
                 componentGroups: List<ComponentGroup>,
                 resolvedInputBytes: List<SerializedStateAndRef>,
-                resolvedReferenceBytes: List<SerializedStateAndRef>
-        ) = LedgerTransaction(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, networkParameters, references, componentGroups, resolvedInputBytes, resolvedReferenceBytes)
+                resolvedReferenceBytes: List<SerializedStateAndRef>,
+                inputStatesContractClassNameToVersions: Map<ContractClassName, Set<Version>>
+        ) = LedgerTransaction(inputs, outputs, commands, attachments, id, notary, timeWindow, privacySalt, networkParameters, references, componentGroups, resolvedInputBytes, resolvedReferenceBytes, inputStatesContractClassNameToVersions)
     }
 
     val inputStates: List<ContractState> get() = inputs.map { it.state.data }
