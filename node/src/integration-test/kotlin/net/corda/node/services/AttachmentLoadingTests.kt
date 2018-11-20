@@ -65,6 +65,7 @@ class AttachmentLoadingTests {
     private val services = object : ServicesForResolution {
         override fun loadState(stateRef: StateRef): TransactionState<*> = throw NotImplementedError()
         override fun loadStates(stateRefs: Set<StateRef>): Set<StateAndRef<ContractState>> = throw NotImplementedError()
+        override fun loadContractAttachment(stateRef: StateRef): Attachment? = throw NotImplementedError()
         override val identityService = rigorousMock<IdentityService>().apply {
             doReturn(null).whenever(this).partyFromKey(DUMMY_BANK_A.owningKey)
         }
