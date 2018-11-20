@@ -83,7 +83,7 @@ interface NodeConfiguration {
     // TODO At the moment this is just an identifier for the desired CryptoService engine. Consider using a classname to
     //      to allow for pluggable implementations.
     val cryptoServiceName: SupportedCryptoServices?
-    val cryptoServiceConf: String? // Location for the cryptoService conf file.
+    val cryptoServiceConf: Path? // Location for the cryptoService conf file.
 
     val networkParameterAcceptanceSettings: NetworkParameterAcceptanceSettings
 
